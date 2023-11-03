@@ -2,7 +2,7 @@
 
 ### Homework 1
 
-I have uploaded three differetn files for the Homework 1 respectively:
+I have uploaded three different files for the Homework 1 respectively:
 
 1) [Html file](IE-582.html).
 
