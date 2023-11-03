@@ -1,0 +1,246 @@
+---
+title: "IE 582"
+author: "Burak Çetiner"
+date: "2023-11-01"
+output: html_document
+---
+
+---
+title: "IE 582 Statistical Learning for Data Mining"
+author: "Burak Çetiner"
+date: "2023-11-01"
+output: html_document
+---
+
+## Homework 1
+
+```{r setup, include=FALSE}
+library(corrr)
+library(ggcorrplot)
+library(FactoMineR)
+library(devtools)
+library(ggplot2)
+library(factoextra)
+library(dplyr)
+library(readxl)
+library(httr)
+```
+
+
+
+```{r}
+github_url <- "https://github.com/BU-IE-582/fall-23-burakcetiner3/raw/main/all_ticks_wide.xlsx"
+local_file_path <- "all_ticks_wide.xlsx"
+download.file(url = github_url, destfile = local_file_path, mode = "wb")
+Dataset <- read_excel(local_file_path)
+summary(Dataset)
+```
+First I wanted to see the Five Number Summary Statistics (summary) of each dataset. I realized that there are many missing values (NAs) and I decide to get rid off them
+
+
+```{r}
+Dataset1 = Dataset[complete.cases(Dataset),] #removing NAs
+```
+
+Then instead of dealing with 61 different stocks, I decide to choose 10 of them. I chose the foloowing 10 stocks because I have an insight about them due to my brother's trades and advices on Turkish financial market.
+
+```{r}
+AEFES = Dataset1$AEFES
+AKBNK = Dataset1$AKBNK
+AKSA = Dataset1$AKSA
+AKSEN = Dataset1$AKSEN
+SASA = Dataset1$SASA
+CCOLA = Dataset1$CCOLA
+GARAN = Dataset1$GARAN
+MGROS = Dataset1$MGROS 
+TCELL = Dataset1$TCELL
+TUPRS = Dataset1$TUPRS
+```
+
+
+## 4.1 Descriptive Analysis
+
+First I will combine them to see the correlation relationships
+
+```{r}
+Table = cbind(AKBNK,AKSA,AKSEN,SASA,CCOLA,GARAN,MGROS,TCELL, TUPRS) # I construct a new table to see the pairs
+pairs(Table) # scatter diagrams of each pairs
+```
+
+It seems like there is positive strong correlation between AKBNK and GARAN. Let's investigate further
+
+```{r}
+plot(AKBNK, GARAN)
+round(cor(AKBNK, GARAN),3) # r = 0.907 indicates a strong positive correlation between AKBNK and GARAN.
+summary(AKBNK)
+summary(GARAN)
+boxplot(AKBNK) # This function visualize 5-number-summary statistics of AKBNK stock
+boxplot(GARAN) # This function visualize 5-number-summary statistics of GARAN stock
+```
+
+To finalize descriptive statistics of each stock we have to define standard deviation, variance, mode, interquartile range, and finally the histogram of each stock.
+
+```{r}
+mode_AKBNK = sort(table(AKBNK), decreasing=T)
+mode_AKBNK[1] #mode of AKBNK stock is 6.79
+sd(AKBNK) #standard deviation of AKBNK
+var(AKBNK) #variance of AKBNK
+IQR(AKBNK) #interquartile range of AKBNK
+hist(AKBNK, main="The histogram of stock AKBNK", col="skyblue")
+```
+
+
+
+```{r}
+mode_GARAN = sort(table(GARAN), decreasing=T)
+mode_GARAN[1] #mode of GARAN stock is 8.95
+sd(GARAN) #standard deviation of GARAN
+var(GARAN) #variance of GARAN
+IQR(GARAN) #interquartile range of GARAN
+hist(GARAN,main="The histogram of stock GARAN", col="skyblue")
+```
+
+2nd finding:
+It seems like there is positive correlation between AKSA and AKSEN. Let's investigate further
+
+```{r}
+summary(AKSA)
+summary(AKSEN)
+boxplot(AKSA) # This function visualize 5-number-summary statistics of AKSA stock
+boxplot(AKSEN) # This function visualize 5-number-summary statistics of AKSEN stock
+plot(AKSA, AKSEN)
+round(cor(AKSA, AKSEN),3) # 0.636 indicates a positive correlation between AKSA and AKSEN.
+```
+
+To finalize descriptive statistics of each stock we have to define standard deviation, variance, mode, interquartile range, and finally the histogram of each stock.
+
+```{r}
+mode_AKSA = sort(table(AKSA), decreasing=T)
+mode_AKSA[1] #mode of AKSA stock is 8.0397
+sd(AKSA) #standard deviation of AKSA
+var(AKSA) #variance of AKSA
+IQR(AKSA) #interquartile range of AKSA
+hist(AKSA, main="The histogram of stock AKSA", col="skyblue")
+```
+
+```{r}
+mode_AKSEN = sort(table(AKSEN), decreasing=T)
+mode_AKSEN[1] #mode of AKSEN stock is 2.35
+sd(AKSEN) #standard deviation of AKSEN
+var(AKSEN) #variance of AKSEN
+IQR(AKSEN) #interquartile range of AKSEN
+hist(AKSEN, main="The histogram of stock AKSEN", col="skyblue")
+```
+
+## 4.2 Moving Window Correlation
+
+```{r}
+AKBNK_april = AKBNK[11:58]; AKBNK_april
+AKBNK_may = AKBNK[59:101]
+AKBNK_june = AKBNK[102:150]
+AKBNK_july = AKBNK[151:182]
+AKBNK_august = AKBNK[183:224]
+AKBNK_september = AKBNK[225:269]
+
+GARAN_april = GARAN[11:58]; GARAN_april
+GARAN_may = GARAN[59:101]
+GARAN_june = GARAN[102:150]
+GARAN_july = GARAN[151:182]
+GARAN_august = GARAN[183:224]
+GARAN_september = GARAN[225:269]
+
+plot(GARAN_april, AKBNK_april)
+cor(GARAN_april, AKBNK_april)
+
+plot(GARAN_may, AKBNK_may)
+cor(GARAN_may, AKBNK_may)
+
+plot(GARAN_june, AKBNK_june)
+cor(GARAN_june, AKBNK_june)
+
+plot(GARAN_july, AKBNK_july)
+cor(GARAN_july, AKBNK_july)
+
+plot(GARAN_august, AKBNK_august)
+cor(GARAN_august, AKBNK_august)
+
+plot(GARAN_september, AKBNK_september)
+cor(GARAN_september, AKBNK_september)
+```
+
+```{r}
+AKBNK_2016 = AKBNK[1:376]; AKBNK_2016
+AKBNK_2017 = AKBNK[377:1055]
+AKBNK_2018 = AKBNK[1056:5318]
+AKBNK_2019 = AKBNK[5319:9228]
+
+GARAN_2016 = GARAN[1:376]; GARAN_2016
+GARAN_2017 = GARAN[377:1055]
+GARAN_2018 = GARAN[1056:5318]
+GARAN_2019 = GARAN[5319:9228]
+
+plot(GARAN_2016, AKBNK_2016)
+cor(GARAN_2016, AKBNK_2016)
+
+plot(GARAN_2017, AKBNK_2017)
+cor(GARAN_2017, AKBNK_2017)
+
+plot(GARAN_2018, AKBNK_2018)
+cor(GARAN_2018, AKBNK_2018)
+
+plot(GARAN_2019, AKBNK_2019)
+cor(GARAN_2019, AKBNK_2019)
+```
+
+# 4.3 Principal Component Analysis (PCA)
+
+```{r}
+numerical_data = Dataset1[2:61]
+data_normalized <- scale(numerical_data)
+head(data_normalized)
+```
+
+First I created the correlation matrix by using thw whole dataset.
+
+```{r}
+corr_matrix <- cor(data_normalized)
+ggcorrplot(corr_matrix)
+
+```
+
+However, we cannot comment much about it. It does not help much, since there are 61 variables. So, I decide to continue principal compenent analysis by using 10 preffered stocks.
+
+```{r}
+Preffered_stock = Table
+Preffered_normalized <- scale(Table)
+```
+
+```{r}
+corr_matrix2 <- cor(Preffered_normalized) ;corr_matrix2
+ggcorrplot(corr_matrix2)
+
+data.pca <- princomp(corr_matrix2)
+summary(data.pca)
+```
+
+We see that highest correlation value appers in between AKBNK and GARAN as we earlier found out.
+
+
+```{r}
+data.pca$loadings[, 1:2]
+fviz_screeplot(data.pca, addlabels = TRUE)
+```
+
+
+```{r}
+fviz_pca_var(data.pca, col.var = "black")
+fviz_cos2(data.pca, choice = "var", axes = 1:2)
+fviz_pca_var(data.pca, col.var = "cos2",
+             gradient.cols = c("black", "orange", "green"),
+             repel = TRUE)
+```
+
+
+## 4.4 Inference with Google Trends
+
+You can find the related figures and the following comment on Google Trend Analysis in the report file.
