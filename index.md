@@ -8,6 +8,6 @@ I have uploaded three differetn files for the Homework 1 respectively:
 
 2) [Report](IE 582 Homework 1 Report.pdf)
 
-3) [R codes] (IE 582.Rmd)
+3) [R codes](IE 582.Rmd)
 
 
