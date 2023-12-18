@@ -1,0 +1,282 @@
+---
+title: "IE 582 HW2"
+author: "Burak Çetiner"
+date: "2023-12-17"
+output: html_document
+---
+
+
+I have found 6 different datasets with the following attributes:
+
+1) Hungary Chickenpox Dataset (522 samples, 21 feautures)
+2) Spanish Gender Gap Dataset (4746 samples, 21 feautures)
+3) Acoustic Features Dataset (400 samples, 51 feautures)
+4) Wave Energy Dataset (29302 samples, 149 feautures)
+5) Student (395 samples, 33 feautures)
+6) Credit Card (30 001 samples, 25 feautures)
+
+First, I have divided each dataset into training data and test data. Theb I applied the following algorithms one by one:
+
+a. Nearest Neighbor (NN) 
+b. Decision Trees (DT)
+c. Random Forests (RF)
+d. Gradient Boosted Trees (GBT)
+
+
+```{r}
+library(rpart)
+library(rpart.plot)
+library(randomForestSRC)
+library(ranger)
+library(class)
+library(xgboost)
+library(readxl)
+```
+
+
+## 1)Hungary Chickenpox Dataset
+
+```{r}
+github_url1 <- "https://github.com/BU-IE-582/fall-23-burakcetiner3/raw/main/hungary_chickenpox.xlsx"
+local_file_path1 <- "hungary_chickenpox.xlsx"
+download.file(url = github_url1, destfile = local_file_path1, mode = "wb")
+Hungary_Data <- read_excel(local_file_path1)
+```
+
+```{r}
+set.seed(1)
+train_indices <- sample(nrow(Hungary_Data), 261)
+training_data_Hungary <- Hungary_Data[train_indices, ]
+test_data_Hungary <- Hungary_Data[-train_indices, ]
+```
+
+
+## Nearest Neighbor:
+
+```{r}
+dim(training_data_Hungary)
+dim(test_data_Hungary)
+#knn_model <- knn(train = training_data_Hungary, test = test_data_Hungary$BUDAPEST, cl = training_data_Hungary$BUDAPEST, k = 5)
+#accuracy_knn <- mean(knn_model == test_data_Hungary$BUDAPEST)
+#cat("Accuracy for k-Nearest Neighbors:", accuracy_knn, "\n")
+```
+
+
+## Decision Tree:
+
+```{r}
+classHungaryData= training_data_Hungary
+classHungaryData[,ncol(training_data_Hungary)]= training_data_Hungary[,ncol(training_data_Hungary)]>5
+classTree = rpart(BUDAPEST ~. , data=classHungaryData)
+prp(classTree,type =1,extra=1)
+```
+
+
+## Random Forest:
+
+```{r}
+Hungary_rf2 <- ranger(BUDAPEST ~ ., data = training_data_Hungary, num.trees = 100, importance = "impurity")
+Hungary_rf2
+
+predictions_rf <- predict(Hungary_rf2, data = test_data_Hungary)$predictions
+actual_values <- test_data_Hungary$BUDAPEST; actual_values
+
+accuracy <- mean((predictions_rf - actual_values)/actual_values)
+cat("Accuracy:", accuracy, "\n")
+```
+## Gradient Boosting Tree
+
+```{r}
+dtrain_Hungary <- xgb.DMatrix(data = as.matrix(training_data_Hungary$BUDAPEST), label = training_data_Hungary$BUDAPEST)
+dtest_Hungary <- xgb.DMatrix(data = as.matrix(test_data_Hungary$BUDAPEST))
+params <- list(objective = "binary:logistic", eval_metric = "logloss", booster = "gbtree", eta = 0.1, max_depth = 6, subsample = 0.8, colsample_bytree = 0.8)
+
+```
+
+
+Interpretation: 
+
+
+KNN: I am failed to implement it due to coding error.
+
+Random Forest:
+Accuracy: 0.3352837 
+
+Gradient Boosting: I am failed to implement it due to coding error. I realized that it is due to the dimensions of the training dataset and test dataset. However I was not able to solve this problem.
+
+## 2) Spanish Gender Gap Dataset
+
+```{r}
+github_url2 <- "https://github.com/BU-IE-582/fall-23-burakcetiner3/raw/main/Spain.xlsx"
+local_file_path2 <- "Spain.xlsx"
+download.file(url = github_url2, destfile = local_file_path2, mode = "wb")
+Spanish_Data <- read_excel(local_file_path2)
+```
+
+```{r}
+set.seed(1)
+train_indices <- sample(nrow(Spanish_Data), 2300)
+training_data_Spanish <- Spanish_Data[train_indices, ]
+test_data_Spanish <- Spanish_Data[-train_indices, ]
+```
+
+## Decision Tree:
+
+```{r}
+classSpanishData= training_data_Spanish
+classSpanishData[,ncol(training_data_Spanish)]= training_data_Spanish[,ncol(training_data_Spanish)]>7
+classTree_Spanish = rpart(C_man ~. , data=classSpanishData)
+prp(classTree_Spanish,type =1,extra=1)
+```
+
+
+## Gradient Boosting Tree
+
+```{r}
+training_data_Spanish$gender <- as.numeric(ifelse(training_data_Spanish$gender  == "1", 1, 0))
+dtrain_Spanish <- xgb.DMatrix(data = as.matrix(training_data_Spanish$gender), label = training_data_Spanish$gender)
+test_data_Spanish$gender <- as.numeric(ifelse(test_data_Spanish$gender  == "1", 1, 0))
+dtest_Spanish <- xgb.DMatrix(data = as.matrix(test_data_Spanish$gender))
+params <- list(objective = "binary:logistic", eval_metric = "logloss", booster = "gbtree", eta = 0.1, max_depth = 6, subsample = 0.8, colsample_bytree = 0.8)
+xgb_model <- xgboost(data = dtrain_Spanish, params = params, nrounds = 100)
+predictions_Spanish_gradient <- predict(xgb_model, dtest_Spanish)
+```
+
+```{r}
+actual_values_Spanish <- test_data_Spanish$gender
+predictions_round = round(predictions_Spanish_gradient)
+accuracy <- mean(predictions_round == actual_values_Spanish)
+accuracy
+
+```
+
+
+Interpretation:
+
+Gradient Boosting Tree gives a accuracy value of 1 for predicting the gender of the sample which is interesting.
+
+
+## 3) Acoustic Features Dataset
+
+```{r}
+github_url3 <- "https://github.com/BU-IE-582/fall-23-burakcetiner3/raw/main/Acoustic%20Features.xlsx"
+local_file_path3 <- "Acoustic Features.xlsx"
+download.file(url = github_url3, destfile = local_file_path3, mode = "wb")
+Acoustic_Data <- read_excel(local_file_path3)
+
+```
+
+```{r}
+set.seed(1)
+train_indices <- sample(nrow(Acoustic_Data), 200)
+training_data_Acoustic <- Acoustic_Data[train_indices, ]
+test_data_Acoustic <- Acoustic_Data[-train_indices, ]
+```
+
+## Decision Tree:
+
+```{r}
+classAcousticData= training_data_Acoustic
+classAcousticData[,ncol(training_data_Acoustic)]= training_data_Acoustic[,ncol(training_data_Acoustic)]>5
+classTree_Acoustic = rpart(Class ~. , data=classAcousticData)
+prp(classTree_Acoustic,type =1,extra=1)
+```
+
+
+
+
+## 4) Wave Energy Dataset
+
+```{r}
+github_url4 <- "https://github.com/BU-IE-582/fall-23-burakcetiner3/raw/main/WEC_Perth_49.xlsx"
+local_file_path4 <- "WEC_Perth_49.xlsx"
+download.file(url = github_url4, destfile = local_file_path4, mode = "wb")
+WEC_Data <- read_excel(local_file_path4)
+```
+
+```{r}
+set.seed(1)
+train_indices <- sample(nrow(WEC_Data), 200)
+training_data_WEC <- WEC_Data[train_indices, ]
+test_data_WEC <- WEC_Data[-train_indices, ]
+```
+
+
+## 5) Student Dataset
+
+```{r}
+github_url5 <- "https://github.com/BU-IE-582/fall-23-burakcetiner3/raw/main/student-mat.xlsx"
+local_file_path5 <- "student-mat.xlsx"
+download.file(url = github_url5, destfile = local_file_path5, mode = "wb")
+Student_Data <- read_excel(local_file_path5)
+```
+
+```{r}
+train_indices <- sample(nrow(Student_Data), 200)
+training_data_Student <- Student_Data[train_indices, ]
+test_data_Student <- Student_Data[-train_indices, ]
+training_data_Student$sex <- as.numeric(ifelse(training_data_Student$sex == "F", 1, 0))
+test_data_Student$sex <- as.numeric(ifelse(test_data_Student$sex == "F", 1, 0))
+```
+
+## Decision Tree:
+
+```{r}
+classStudentData= training_data_Student
+classStudentData[,ncol(training_data_Student)]= training_data_Student[,ncol(training_data_Student)]>5
+classTree = rpart(sex ~. , data=classStudentData)
+prp(classTree,type =1,extra=1)
+```
+
+
+```{r}
+predictions_Student <- predict(classTree, newdata = test_data_Student)
+actual_values_Student <- test_data_Student$sex
+accuracy_Student <- mean(predictions_Student == actual_values_Student)
+accuracy_Student
+```
+
+## Gredient Boosting Tree:
+
+```{r}
+dtrain_Student <- xgb.DMatrix(data = as.matrix(training_data_Student$sex), label = training_data_Student$sex)
+dtest_Student <- xgb.DMatrix(data = as.matrix(test_data_Student$sex))
+params <- list(objective = "binary:logistic", eval_metric = "logloss", booster = "gbtree", eta = 0.1, max_depth = 6, subsample = 0.8, colsample_bytree = 0.8)
+xgb_model <- xgboost(data = dtrain_Student, params = params, nrounds = 100)
+predictions_Student <- predict(xgb_model, dtest_Student)
+
+predictions_round = round(predictions_Student)
+
+accuracy <- 1 - mean(abs(predictions_Student - actual_values_Student))
+cat("Accuracy:", accuracy, "\n")
+```
+
+Interpretation: 
+
+I have constructed the decision tree and implement gradient boosting tree. The value of accuracy for the gradient boosting tree is 0.988 whereas accuracy of Decision Tree for predicting the gender of the students is 0.461 which indicates that the gradient boosting tree is a far better option
+
+## 6) Credit Card
+
+```{r}
+github_url6 <- "https://github.com/BU-IE-582/fall-23-burakcetiner3/raw/main/credit_card.xlsx"
+local_file_path6 <- "credit_card.xlsx"
+download.file(url = github_url6, destfile = local_file_path6, mode = "wb")
+Credit_Data <- read_excel(local_file_path6)
+```
+
+# DECISION TREE
+
+```{r}
+str(Credit_Data)
+classCreditData= Credit_Data
+classCreditData[,ncol(Credit_Data)]= Credit_Data[,ncol(Credit_Data)]>5
+classTree = rpart(BILL_AMT5 ~. , data=classCreditData)
+prp(classTree,type =1,extra=1)
+```
+
+
+Conclusion:
+
+I had found 6 differnet datasets which I implemented different learning algorithms such as nearest neighbor, decision tree, random forest, and gradient boosting in order to make predictions. First of all, I divided each data set into training data and test data. Unfortunately, I had some difficulties while implementing some of the algorithms due to coding. On the other hand, I had successfully construct decision trees for each dataset which can be seen above. I used the parameter of “the minimal
+number of observations per tree leaf" as 5 for the most of the cases. Moreover, gradient boosting tree algorithm works the best in terms of predicting accuracy for some of the datasets such as student data set and spanish gender gap. It works well for identifying the genders in those datasets.
+
