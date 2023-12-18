@@ -13,7 +13,7 @@ I have uploaded three different files for the Homework 1 respectively:
 
 ### Homework 2
 
-I have uploaded two different files for the Homework w respectively:
+I have uploaded two different files for the Homework 2 respectively:
 
 1) [Html file] (IE-582-HW2.html)
 2) [R codes] (IE 582 HW2.Rmd)
