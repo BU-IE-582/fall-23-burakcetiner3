@@ -11,3 +11,11 @@ I have uploaded three different files for the Homework 1 respectively:
 3) [R codes](IE 582.Rmd)
 
 
+### Homework 2
+
+I have uploaded two different files for the Homework w respectively:
+
+1) [Html file]
+
+
+
